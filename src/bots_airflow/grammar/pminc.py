@@ -1,6 +1,5 @@
 from bots_airflow.specs import GrammarSpec
 
-
 json_out = GrammarSpec(
     editype='jsonnocheck',
     messagetype='jsonnocheck',

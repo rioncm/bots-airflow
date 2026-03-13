@@ -11,6 +11,7 @@ from pathlib import Path
 import django.conf
 
 from .registry import resolve_import
+
 DEFAULT_RUNTIME_ROOT = Path(tempfile.gettempdir()) / 'bots_airflow_runtime'
 
 

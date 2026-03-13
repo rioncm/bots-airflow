@@ -1,5 +1,8 @@
-from bots.botsconfig import *
-from .records004010 import recorddefs
+from bots.botsconfig import ID, LEVEL, MAX, MIN
+
+from . import records004010
+
+recorddefs = records004010.recorddefs
 
 
 syntax = {

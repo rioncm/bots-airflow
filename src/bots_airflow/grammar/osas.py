@@ -1,6 +1,5 @@
 from bots_airflow.specs import GrammarSpec
 
-
 inventory_json_in = GrammarSpec(
     editype='json',
     messagetype='inventory_846_json',

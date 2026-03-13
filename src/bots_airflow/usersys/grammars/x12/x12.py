@@ -1,4 +1,8 @@
-from .envelope import recorddefs, structure, nextmessage
+from . import envelope
+
+recorddefs = envelope.recorddefs
+structure = envelope.structure
+nextmessage = envelope.nextmessage
 
 
 syntax = {

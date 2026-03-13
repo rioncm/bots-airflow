@@ -9,7 +9,6 @@ from bots_airflow.mappings.json.inventory_to_livingspaces_846 import (
 )
 from bots_airflow.mappings.x12.ls_to_osas_sscc import LivingSpacesToOsasSscc
 
-
 FIXTURES = Path(__file__).resolve().parents[1] / 'examples' / 'fixtures'
 
 

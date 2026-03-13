@@ -1,6 +1,5 @@
 from bots.botsconfig import ID, MAX, MIN
 
-
 syntax = {
     'field_sep': ',',
     'quote_char': '"',

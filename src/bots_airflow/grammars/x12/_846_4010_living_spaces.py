@@ -1,6 +1,8 @@
 from bots.botsconfig import ID, LEVEL, MAX, MIN
 
-from .segments_004010_ls_846 import recorddefs
+from . import segments_004010_ls_846
+
+recorddefs = segments_004010_ls_846.recorddefs
 
 
 syntax = {

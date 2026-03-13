@@ -6,7 +6,8 @@ from typing import Any
 from .context import TranslationContext, coerce_translation_context
 from .mapping import BaseMapping, MappingServices
 from .registry import register_grammar
-from .runner import TranslationRequest, TranslationResult, translate_text as _translate_text
+from .runner import TranslationRequest, TranslationResult
+from .runner import translate_text as _translate_text
 from .specs import GrammarSpec, coerce_grammar_spec
 
 
@@ -42,7 +43,10 @@ class Translator:
         if not roots:
             return None
 
-        normalized = {str(Path(root).resolve()) if isinstance(root, Path) else str(root) for root in roots}
+        normalized = {
+            str(Path(root).resolve()) if isinstance(root, Path) else str(root)
+            for root in roots
+        }
         if len(normalized) != 1:
             raise ValueError(
                 'grammar_in and grammar_out specify different usersys roots. '

@@ -26,7 +26,9 @@ class TranslationContext:
         return self.partners.get(partner_id, {}).get(field, default)
 
 
-def coerce_translation_context(value: TranslationContext | Mapping[str, Any] | None) -> TranslationContext:
+def coerce_translation_context(
+    value: TranslationContext | Mapping[str, Any] | None,
+) -> TranslationContext:
     if value is None:
         return TranslationContext()
     if isinstance(value, TranslationContext):

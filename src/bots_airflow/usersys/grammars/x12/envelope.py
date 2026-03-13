@@ -1,5 +1,4 @@
-from bots.botsconfig import ID, LEVEL, MIN, MAX, QUERIES, SUBTRANSLATION
-
+from bots.botsconfig import ID, LEVEL, MAX, MIN, QUERIES, SUBTRANSLATION
 
 nextmessage = ({'BOTSID': 'ISA'}, {'BOTSID': 'GS'}, {'BOTSID': 'ST'})
 

@@ -71,7 +71,11 @@ def _render_module(
     segments: list[str],
     extracted: dict[str, list],
 ) -> str:
-    grammar_comment = ', '.join(grammar_references) if grammar_references else 'manual segment selection'
+    grammar_comment = (
+        ', '.join(grammar_references)
+        if grammar_references
+        else 'manual segment selection'
+    )
     rendered_recorddefs = pprint.pformat(extracted, width=100, sort_dicts=True)
     return (
         '"""\n'

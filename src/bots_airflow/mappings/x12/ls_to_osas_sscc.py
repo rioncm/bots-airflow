@@ -59,7 +59,10 @@ class LivingSpacesToOsasSscc(BaseMapping):
             placeholder = self._normalize(self._setting(context, 'po_number_placeholder', 'PO_NUM'))
             if placeholder:
                 return placeholder
-            raise ValueError('po_number_source is "placeholder" but no po_number_placeholder was provided.')
+            raise ValueError(
+                'po_number_source is "placeholder" but no po_number_placeholder '
+                'was provided.'
+            )
 
         po_number = self._normalize(inn.get({'BOTSID': 'ST'}, {'BOTSID': 'BEG', 'BEG03': None}))
         if po_number:

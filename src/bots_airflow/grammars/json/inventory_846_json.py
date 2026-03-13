@@ -1,6 +1,5 @@
 from bots.botsconfig import ID, MAX, MIN
 
-
 syntax = {
     'pass_all': True,
 }

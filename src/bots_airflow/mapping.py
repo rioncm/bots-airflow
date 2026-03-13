@@ -6,7 +6,6 @@ from typing import Any, Callable, Mapping
 
 from .context import TranslationContext, coerce_translation_context
 
-
 PartnerLookup = Callable[[str, str, Any], Any]
 CodeLookup = Callable[..., Any]
 PersistLookup = Callable[[str, Any], Any]

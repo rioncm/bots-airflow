@@ -8,7 +8,6 @@ from typing import Any
 
 from .bootstrap import RuntimePaths, ensure_runtime
 
-
 EDITYPE_EXTENSIONS = {
     'csv': '.csv',
     'edifact': '.edi',
@@ -112,7 +111,9 @@ def translate_text(request: TranslationRequest) -> TranslationResult:
         tempfile.mkdtemp(prefix='translate-', dir=str(runtime.runtime_root))
     )
     input_path = task_dir / request.filename
-    output_path = task_dir / (request.output_filename or _default_output_filename(request.to_editype))
+    output_path = task_dir / (
+        request.output_filename or _default_output_filename(request.to_editype)
+    )
 
     input_path.write_text(request.input_text, encoding=request.charset)
 

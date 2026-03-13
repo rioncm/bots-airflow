@@ -1,6 +1,5 @@
 from bots_airflow.specs import GrammarSpec
 
-
 x12_in = GrammarSpec(
     editype='x12',
     messagetype='x12',
