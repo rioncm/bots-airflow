@@ -1,0 +1,49 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test, lint, and type-check caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Coverage output
+.coverage
+.coverage.*
+htmlcov/
+
+# Build and packaging artifacts
+build/
+dist/
+site/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local tooling and editor files
+*/.DS_Store
+*.DS_Store*
+.python-version
+.vscode/
+.idea/
+
+# Local environment files
+.env
+.env.*
+
+# Private material
+*.pem
+*.key
+*.p12
+*.crt
+*.cer
+*.der
+*.sqlite*
+private/
+secrets/

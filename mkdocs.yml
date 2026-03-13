@@ -1,0 +1,26 @@
+site_name: bots_airflow
+site_description: Airflow-oriented extraction layer around Bots translation mechanics.
+site_url: https://bots-airflow.readthedocs.io/
+repo_url: https://github.com/rion/bots-airflow
+repo_name: rion/bots-airflow
+docs_dir: docs
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Quickstart: quickstart.md
+  - Examples:
+      - 850 Inbound: examples/850-inbound.md
+      - 846 Outbound: examples/846-outbound.md
+  - Release and Docs: release.md

@@ -1,0 +1,122 @@
+[
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-001",
+        "description": "Demo mattress profile 001",
+        "price": "358.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000001",
+        "customer_sku": "100001"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-002",
+        "description": "Demo mattress profile 002",
+        "price": "367.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000002",
+        "customer_sku": "100002"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-003",
+        "description": "Demo mattress profile 003",
+        "price": "395.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000003",
+        "customer_sku": "100003"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-004",
+        "description": "Demo mattress profile 004",
+        "price": "414.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000004",
+        "customer_sku": "100004"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-005",
+        "description": "Demo mattress profile 005",
+        "price": "555.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000005",
+        "customer_sku": "100005"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-006",
+        "description": "Demo mattress profile 006",
+        "price": "555.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000006",
+        "customer_sku": "100006"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-007",
+        "description": "Demo mattress profile 007",
+        "price": "358.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000007",
+        "customer_sku": "100007"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-008",
+        "description": "Demo mattress profile 008",
+        "price": "367.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000008",
+        "customer_sku": "100008"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-009",
+        "description": "Demo mattress profile 009",
+        "price": "395.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000009",
+        "customer_sku": "100009"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-010",
+        "description": "Demo mattress profile 010",
+        "price": "414.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000010",
+        "customer_sku": "100010"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-011",
+        "description": "Demo mattress profile 011",
+        "price": "555.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000011",
+        "customer_sku": "100011"
+    },
+    {
+        "customer_id": "DEMO001",
+        "location_id": "1",
+        "item_sku": "ITEM-DEMO-012",
+        "description": "Demo mattress profile 012",
+        "price": "555.0000",
+        "sku_status": "A",
+        "sku_upc": "100000000012",
+        "customer_sku": "100012"
+    }
+]

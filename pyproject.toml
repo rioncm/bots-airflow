@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bots-airflow"
+dynamic = ["version"]
+description = "Airflow-oriented extraction layer around Bots parse, tree, mapping, and serialization mechanics."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [
+  { name = "Rion" },
+]
+keywords = ["edi", "x12", "bots", "airflow", "translation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: Other/Proprietary License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "bots-ediint>=4,<5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "twine>=5.1",
+  "ruff>=0.11",
+]
+test = [
+  "pytest>=8.3",
+]
+docs = [
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.5",
+  "mkdocstrings[python]>=0.26",
+]
+
+[project.urls]
+Homepage = "https://github.com/rion/bots-airflow"
+Documentation = "https://bots-airflow.readthedocs.io/"
+Repository = "https://github.com/rion/bots-airflow"
+Issues = "https://github.com/rion/bots-airflow/issues"
+PyPI = "https://pypi.org/project/bots-airflow/"
+
+[tool.hatch.version]
+path = "src/bots_airflow/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bots_airflow"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src/bots_airflow",
+  "/docs",
+  "/examples",
+  "/tests",
+  "/README.md",
+  "/pyproject.toml",
+  "/mkdocs.yml",
+  "/.readthedocs.yaml",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
