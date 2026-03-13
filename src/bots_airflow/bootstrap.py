@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import django.conf
+from django.utils import translation as django_translation
 
 from .registry import resolve_import
 
@@ -159,6 +160,21 @@ def _init_logger() -> logging.Logger:
     return logger
 
 
+def _install_django_translation_compat() -> None:
+    aliases = {
+        'ugettext': 'gettext',
+        'ugettext_lazy': 'gettext_lazy',
+        'ungettext': 'ngettext',
+        'ungettext_lazy': 'ngettext_lazy',
+        'ugettext_noop': 'gettext_noop',
+    }
+
+    for legacy_name, modern_name in aliases.items():
+        if hasattr(django_translation, legacy_name):
+            continue
+        setattr(django_translation, legacy_name, getattr(django_translation, modern_name))
+
+
 def _install_botsimport_hook() -> None:
     from bots import botslib
 
@@ -182,6 +198,7 @@ def _core_init(runtime_paths: RuntimePaths) -> None:
     _ensure_import_path(runtime_paths.source_root)
     _ensure_import_path(runtime_paths.bots_root)
     _ensure_import_path(runtime_paths.usersys_root.parent)
+    _install_django_translation_compat()
 
     from bots import botsglobal, botsinit, botslib, node
 
