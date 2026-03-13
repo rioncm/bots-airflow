@@ -23,7 +23,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-  "bots-ediint>=4,<5",
+  "bots-ediint>=3.3.1,<4",
 ]
 
 [project.optional-dependencies]
