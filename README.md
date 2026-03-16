@@ -1,6 +1,8 @@
 # bots-airflow
 
-`bots_airflow` is the start of an Airflow-oriented extraction layer around Bots core.
+## Objective
+
+`bots_airflow` is an Airflow-oriented extraction of the core Bots EDI translation runtime: grammar loading, parsing into message trees, mapping execution, and serialization.
 
 Architecture and release target: [docs/architecture.md](docs/architecture.md)
 
@@ -23,137 +25,66 @@ and move the rest into Airflow or explicit Python code:
 
 This package currently provides:
 
-- a lean core bootstrap that initializes Bots parse/tree/write state in memory
+- a `botscore`-backed translation runtime for grammar loading, parse/tree handling, mapping execution, and serialization
+- a lean bootstrap that initializes extracted runtime state in memory without the full Bots engine control path
 - a direct translation runner that does not use Bots engine, routes, channels, or translate tables
-- a registry-backed import hook for grammars and mappings
-- a thin `Translator` facade for Airflow tasks
+- a thin `Translator` facade plus lower-level `TranslationRequest` and `translate_text(...)` APIs for direct task execution
+- a registry-backed import hook for explicit grammar and mapping resolution
 - an explicit `TranslationContext` model for per-run values
-- a `BaseMapping` class for state-light, dependency-injected mappings
+- a `BaseMapping` class and service model for state-light, dependency-injected mappings
+- first-class `bots_airflow.grammar.*` helpers that package common `GrammarSpec` combinations
 - first-class `bots_airflow.grammars.*` modules for Living Spaces X12, OSAS inventory JSON, and SSCC CSV paths
-- first-class `bots_airflow.mappings.*` modules, including real SSCC and 846 mappings driven by `TranslationContext`
-- a transitional local `usersys` tree for compatibility while extraction continues
-- standalone repo scaffolding under `src/`, `docs/`, `tests/`, and `examples/`
+- first-class `bots_airflow.mappings.*` modules, including extracted SSCC and 846 mappings driven by `TranslationContext`
+- a small remaining compatibility surface around upstream packaging and legacy metadata while the supported API stays direct module and registry-based
 
-## Important caveat
+## Current boundaries
 
-This is an extraction layer, not a full fork of Bots core.
+`bots_airflow` is centered on the extracted translation runtime, not on the legacy Bots engine.
 
-Today it still depends on the `bots` runtime package distributed as `bots-ediint`, but it no longer runs the full Bots `generalinit()` path for translations. The current bootstrap configures only the core state needed for grammar loading, parse/tree handling, and write operations, plus minimal in-memory Django settings for Bots' translation/error machinery. For migration work in this workspace, the bootstrap can also fall back to a sibling `../bots_edi` checkout if the package is not installed.
+Today the primary translation path runs on `botscore` and no longer goes through the full Bots `generalinit()` bootstrap, engine, routes, channels, translate tables, or public `usersys` conventions.
 
-Grammars no longer have to be reachable only through Bots `usersys` lookup rules. `GrammarSpec` can bind explicit module paths, and the import hook will satisfy Bots grammar reads from that registry first.
+The supported runtime no longer bootstraps an internal `usersys` stub. Unsupported legacy `usersys` imports now fail explicitly instead of being satisfied by a temporary package shim.
+
+This is still not a full fork or full replacement for the entire legacy Bots distribution. The supported runtime now targets standalone `botscore`, while some compatibility surfaces still exist upstream in the broader Bots codebase.
+
+Django is no longer part of the primary translation runtime path for extracted flows. Remaining Django usage is confined to legacy upstream compatibility paths rather than the main Airflow parse/map/write flow.
+
+Grammars do not need to be reachable through Bots `usersys` lookup rules. `GrammarSpec` can bind explicit module paths, and the registry-backed import hook satisfies grammar reads from those explicit registrations first.
+
+For local development in this workspace, the bootstrap prefers a sibling standalone `../bots_edi/botscore/src` checkout. It can still fall back to `../bots_edi/bots` while the upstream repo remains in transition.
+
+For packaging, docs, and tests in a local workspace, install the sibling `botscore`
+package first:
+
+```bash
+pip install -e ../bots_edi/botscore
+pip install -e .[dev,test,docs]
+```
 
 ## Layout
 
 - `src/bots_airflow/bootstrap.py`
-  Initializes the minimum Bots globals and import paths needed for parse/tree/write.
-- `src/bots_airflow/registry.py`
-  Registers explicit grammar and mapping modules for Bots import calls.
+  Initializes the extracted runtime state and import paths needed for parse/map/write execution.
+- `src/bots_airflow/context.py`
+  Defines explicit per-run translation inputs passed from Airflow tasks and upstream code.
+- `src/bots_airflow/translator.py`
+  Provides the main Airflow-facing facade for direct translation execution.
 - `src/bots_airflow/runner.py`
-  Parses input text, loads a mapping explicitly, runs it, and returns output text.
-- `src/bots_airflow/devtools/extract_recorddefs.py`
-  Developer utility that extracts a minimal recorddefs module from a larger legacy source.
+  Executes the low-level parse/map/write flow directly against the extracted runtime.
+- `src/bots_airflow/registry.py`
+  Registers explicit grammar and mapping modules for runtime import resolution.
+- `src/bots_airflow/grammar/`
+  Exposes reviewed `GrammarSpec` helpers for common extracted flows.
 - `src/bots_airflow/grammars/`
-  First-class grammar modules that no longer depend on Bots `usersys` naming.
+  Contains first-class grammar modules and extracted segment packs used by the runtime.
 - `src/bots_airflow/mappings/`
-  First-class mapping modules that can be instantiated directly.
-- `src/bots_airflow/usersys/`
-  Transitional compatibility layer while more flows move to first-class modules.
+  Contains first-class mapping modules that can be instantiated directly.
+- `src/bots_airflow/devtools/`
+  Contains developer-only extraction and maintenance utilities.
 - `examples/fixtures/`
-  Local sample inputs used by docs and smoke tests.
+  Contains local sample inputs used by docs and smoke tests.
 
-## Example
-
-Low-level runner:
-
-```python
-from pathlib import Path
-
-from bots_airflow.runner import TranslationRequest, translate_text
-
-request = TranslationRequest(
-    input_text=Path(
-        "examples/fixtures/sample_850.edi"
-    ).read_text(),
-    from_editype="x12",
-    from_messagetype="850_ls_inbound4010",
-    to_editype="x12",
-    to_messagetype="850_ls_inbound4010",
-    mapping_module="bots_airflow.mappings.x12.pass_through",
-    mapping_source="python",
-)
-
-result = translate_text(request)
-print(result.output_text)
-```
-
-Airflow-facing facade:
-
-```python
-from bots_airflow import GrammarSpec, TranslationContext, init
-from bots_airflow.mapping import BaseMapping
-
-
-class PassThrough(BaseMapping):
-    def translate(self, inn, out, *, context, **kwargs):
-        from bots import transform
-        transform.inn2out(inn, out)
-
-
-translator = init(
-    grammar_in=GrammarSpec(
-        editype="x12",
-        messagetype="x12",
-        module="bots_airflow.grammars.x12.x12",
-        support_modules={
-            "850_ls_inbound4010": "bots_airflow.grammars.x12._850_ls_inbound4010",
-        },
-    ),
-    grammar_out=GrammarSpec(
-        editype="x12",
-        messagetype="850_ls_inbound4010",
-        module="bots_airflow.grammars.x12._850_ls_inbound4010",
-        support_modules={
-            "x12": "bots_airflow.grammars.x12.x12",
-        },
-    ),
-    map=PassThrough,
-)
-
-translator.translate(
-    "input.edi",
-    "output.edi",
-    context=TranslationContext(
-        frompartner="DEMORETAIL",
-        topartner="DEMOFULFILL",
-        metadata={"run_id": "abc123"},
-    ),
-)
-```
-
-Registry-only facade with no `usersys_root`:
-
-```python
-translator = init(
-    grammar_in=GrammarSpec(
-        editype="x12",
-        messagetype="x12",
-        module="bots_airflow.grammars.x12.x12",
-        support_modules={
-            "850_ls_inbound4010": "bots_airflow.grammars.x12._850_ls_inbound4010",
-        },
-    ),
-    grammar_out=GrammarSpec(
-        editype="x12",
-        messagetype="850_ls_inbound4010",
-        module="bots_airflow.grammars.x12._850_ls_inbound4010",
-        support_modules={
-            "x12": "bots_airflow.grammars.x12.x12",
-        },
-    ),
-    map="bots_airflow.mappings.x12.pass_through",
-    mapping_source="python",
-)
-```
+## Examples
 
 Real extracted SSCC flow:
 
@@ -182,8 +113,7 @@ translator.translate(
 )
 ```
 
-This path does not use `transform.partnerlookup(...)`. Partner data is resolved from
-`TranslationContext` or injected mapping services instead.
+This path does not use `transform.partnerlookup(...)`. Partner data is resolved from `TranslationContext` or injected mapping services instead.
 
 Real extracted 846 flow:
 
@@ -211,6 +141,53 @@ translator.translate(
 )
 ```
 
+Registry-only facade:
+
+```python
+from bots_airflow import GrammarSpec, TranslationContext, init
+from bots_airflow.mappings.x12.ls_to_osas_sscc import LivingSpacesToOsasSscc
+
+translator = init(
+    grammar_in=GrammarSpec(
+        editype="x12",
+        messagetype="x12",
+        module="bots_airflow.grammars.x12.x12",
+        support_modules={
+            "850_ls_inbound4010": "bots_airflow.grammars.x12._850_ls_inbound4010",
+        },
+    ),
+    grammar_out=GrammarSpec(
+        editype="x12",
+        messagetype="850_ls_inbound4010",
+        module="bots_airflow.grammars.x12._850_ls_inbound4010",
+        support_modules={
+            "x12": "bots_airflow.grammars.x12.x12",
+        },
+    ),
+    map=LivingSpacesToOsasSscc,
+)
+
+translator.translate(
+    "input.edi",
+    "sscc.csv",
+    context=TranslationContext(
+        frompartner="DEMORETAIL",
+        topartner="DEMOFULFILL",
+        partners={"DEMORETAIL": {"attr2": "900001"}},
+    ),
+)
+```
+
+## Path to objective
+
+The remaining path is:
+
+1. keep runtime resolution focused on explicit module paths and registry-based imports
+2. keep first-class grammars and mappings in local modules instead of legacy Bots package conventions
+3. publish and release `botscore` as the supported runtime dependency
+4. trim remaining compatibility-only release and documentation language now that `bots_airflow` depends on `botscore`
+5. continue reducing any unsupported legacy references that are still only present for coexistence with the upstream Bots repo
+
 ## Developer utilities
 
 To extract a reduced recorddefs pack for a specific grammar:
@@ -222,9 +199,7 @@ python3 -m bots_airflow.devtools.extract_recorddefs \
   --output src/bots_airflow/grammars/x12/segments_004010_ls_850.py
 ```
 
-This utility is intentionally outside the runtime path. Developers use it to turn
-large shared segment catalogs into small reviewed Python modules that the runtime
-imports directly.
+This utility is intentionally outside the runtime path. Developers use it to turn large shared segment catalogs into small reviewed Python modules that the runtime imports directly.
 
 ## Mapping model
 
@@ -250,5 +225,6 @@ The intended sequence is:
 1. Replace Bots engine/runtime control with explicit Airflow tasks.
 2. Move project grammars and mappings into first-class `src/bots_airflow/grammars` and `src/bots_airflow/mappings` modules.
 3. Replace DB-backed mapping helpers with explicit context providers.
-4. Keep `usersys` only as a compatibility layer while older flows are migrated.
-5. Reduce or eliminate the remaining Django/bootstrap dependency where practical.
+4. Keep the supported runtime module-first and registry-driven, with no internal `usersys` stub in the hot path.
+5. Use `botscore` as the standalone runtime dependency and keep the supported path independent of the legacy package.
+6. Remove any remaining compatibility-only release surface where practical.

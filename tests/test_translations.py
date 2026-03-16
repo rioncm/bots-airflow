@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 
-from bots_airflow import TranslationContext, init
+from bots_airflow import TranslationContext, clear_import_registry, init, register_mapping
 from bots_airflow.grammar.livingspaces import x12_846_out, x12_in
 from bots_airflow.grammar.osas import inventory_json_in, sscc_out
 from bots_airflow.mappings.json.inventory_to_livingspaces_846 import (
@@ -70,3 +70,32 @@ def test_inventory_json_to_846_translation_smoke(tmp_path):
     assert 'ST*846*123456~' in output_text
     assert 'BIA*00*SI*ref-123456*20260313~' in output_text
     assert output_text.count('LIN*') >= 10
+
+
+def test_registered_mapping_module_resolves_without_usersys_mode(tmp_path):
+    clear_import_registry()
+    register_mapping('x12.registry_sscc', LivingSpacesToOsasSscc)
+
+    try:
+        translator = init(
+            grammar_in=x12_in,
+            grammar_out=sscc_out,
+            map='x12.registry_sscc',
+        )
+
+        output_path = tmp_path / 'sscc.csv'
+        result = translator.translate(
+            FIXTURES / 'sample_850.edi',
+            output_path,
+            context=TranslationContext(
+                frompartner='DEMORETAIL',
+                topartner='DEMOFULFILL',
+                partners={'DEMORETAIL': {'attr2': '900001'}},
+            ),
+        )
+
+        assert result.output_text is not None
+        assert output_path.exists()
+        assert 'PO-EXAMPLE-001' in output_path.read_text()
+    finally:
+        clear_import_registry()

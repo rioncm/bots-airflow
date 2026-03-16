@@ -4,9 +4,11 @@ import importlib
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 from .bootstrap import RuntimePaths, ensure_runtime
+from .registry import resolve_import
 
 EDITYPE_EXTENSIONS = {
     'csv': '.csv',
@@ -30,9 +32,7 @@ class TranslationRequest:
     to_messagetype: str
     mapping_module: str | None = None
     mapping: Any = None
-    usersys_root: str | Path | None = None
     runtime_root: str | Path | None = None
-    mapping_source: str = 'usersys'
     filename: str = 'input.edi'
     output_filename: str | None = None
     charset: str = 'utf-8'
@@ -60,15 +60,17 @@ def _default_output_filename(editype: str) -> str:
     return f'output{EDITYPE_EXTENSIONS.get(editype, ".txt")}'
 
 
-def _load_mapping_main(mapping_module: str, mapping_source: str):
-    if mapping_source == 'usersys':
-        from bots import botslib
+def _load_mapping_main(mapping_module: str):
+    resolved = resolve_import('mappings', *mapping_module.split('.'))
+    if resolved is not None:
+        module_or_mapping, _modulefile = resolved
+        if isinstance(module_or_mapping, ModuleType):
+            if not hasattr(module_or_mapping, 'main'):
+                raise AttributeError(f'Mapping module {mapping_module!r} does not define main(...).')
+            return module_or_mapping.main
+        return _coerce_mapping_main(module_or_mapping)
 
-        module, _modulefile = botslib.botsimport('mappings', *mapping_module.split('.'))
-    elif mapping_source == 'python':
-        module = importlib.import_module(mapping_module)
-    else:
-        raise ValueError(f'Unsupported mapping_source {mapping_source!r}.')
+    module = importlib.import_module(mapping_module)
 
     if not hasattr(module, 'main'):
         raise AttributeError(f'Mapping module {mapping_module!r} does not define main(...).')
@@ -77,6 +79,8 @@ def _load_mapping_main(mapping_module: str, mapping_source: str):
 
 
 def _coerce_mapping_main(mapping: Any):
+    if isinstance(mapping, type):
+        mapping = mapping()
     if hasattr(mapping, 'main') and callable(mapping.main):
         return mapping.main
     if callable(mapping):
@@ -99,13 +103,10 @@ def _mapping_divtext(request: TranslationRequest) -> str:
 
 
 def translate_text(request: TranslationRequest) -> TranslationResult:
-    runtime = ensure_runtime(
-        usersys_root=request.usersys_root,
-        runtime_root=request.runtime_root,
-    )
+    runtime = ensure_runtime(runtime_root=request.runtime_root)
 
-    from bots import inmessage, outmessage
-    from bots.botsconfig import DONE
+    from botscore import inmessage, outmessage
+    from botscore.constants import DONE
 
     task_dir = Path(
         tempfile.mkdtemp(prefix='translate-', dir=str(runtime.runtime_root))
@@ -153,10 +154,7 @@ def translate_text(request: TranslationRequest) -> TranslationResult:
     if request.mapping is not None:
         mapping_main = _coerce_mapping_main(request.mapping)
     elif request.mapping_module:
-        mapping_main = _load_mapping_main(
-            mapping_module=request.mapping_module,
-            mapping_source=request.mapping_source,
-        )
+        mapping_main = _load_mapping_main(mapping_module=request.mapping_module)
     else:
         raise ValueError('TranslationRequest requires mapping or mapping_module.')
 

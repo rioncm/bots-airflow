@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import importlib
 from types import ModuleType
+from typing import Any
 
-ModuleRef = str | ModuleType
+ModuleRef = str | ModuleType | Any
 
 _IMPORT_REGISTRY: dict[tuple[str, ...], ModuleRef] = {}
 
 
-def _module_file(module: ModuleType, key: tuple[str, ...]) -> str:
+def _module_file(module: Any, key: tuple[str, ...]) -> str:
     return getattr(module, '__file__', '') or f'<registered:{"/".join(key)}>'
 
 
@@ -24,16 +25,19 @@ def register_mapping(name: str, module: ModuleRef) -> None:
     register_import(('mappings', *name.split('.')), module)
 
 
-def resolve_import(*key: str) -> tuple[ModuleType, str] | None:
+def resolve_import(*key: str) -> tuple[Any, str] | None:
     module_ref = _IMPORT_REGISTRY.get(tuple(key))
     if module_ref is None:
         return None
 
+    if isinstance(module_ref, str):
+        module = importlib.import_module(module_ref)
+        return module, _module_file(module, tuple(key))
+
     if isinstance(module_ref, ModuleType):
         return module_ref, _module_file(module_ref, tuple(key))
 
-    module = importlib.import_module(module_ref)
-    return module, _module_file(module, tuple(key))
+    return module_ref, _module_file(module_ref, tuple(key))
 
 
 def clear_import_registry() -> None:

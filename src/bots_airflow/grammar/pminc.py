@@ -3,6 +3,6 @@ from bots_airflow.specs import GrammarSpec
 json_out = GrammarSpec(
     editype='jsonnocheck',
     messagetype='jsonnocheck',
-    usersys_root='bots_airflow.usersys',
+    module='bots_airflow.grammars.json.jsonnocheck',
     charset='utf-8',
 )

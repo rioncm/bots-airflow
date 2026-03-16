@@ -1,4 +1,4 @@
-from bots.botsconfig import ID, LEVEL, MAX, MIN
+from botscore.constants import ID, LEVEL, MAX, MIN
 
 from . import segments_004010_ls_846
 

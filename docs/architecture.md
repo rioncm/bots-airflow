@@ -22,7 +22,7 @@ Target responsibility split:
 - Airflow owns orchestration, retries, schedules, branching, persistence, callbacks, object storage, and business configuration.
 - `bots_airflow` owns translation execution: parse, tree, map, write.
 - Developer tools under `src/bots_airflow/devtools` help extract and curate artifacts used by the runtime.
-- Transitional compatibility code such as `usersys/` exists only to support migration and should shrink over time.
+- The supported runtime surface should be direct module and registry-based translation flows, not legacy Bots directory conventions.
 
 What should not remain in the hot path:
 
@@ -108,8 +108,6 @@ Target package shape:
   First-class mapping modules.
 - `src/bots_airflow/devtools/`
   Developer-only extraction and maintenance utilities.
-- `src/bots_airflow/usersys/`
-  Transitional compatibility only.
 
 ## Packaging Target
 
@@ -290,23 +288,27 @@ Recommended behavior:
 - output: X12 846
 - control numbers and partner-specific values come from context or injected services
 
-## Migration Target
+## Implementation Path
 
-The practical migration sequence should be:
+The practical sequence from the current state to the desired objective is:
 
-1. move real grammars into `src/bots_airflow/grammars`
-2. move real mappings into `src/bots_airflow/mappings`
+1. keep real grammars in `src/bots_airflow/grammars`
+2. keep real mappings in `src/bots_airflow/mappings`
 3. replace DB-backed Bots helper usage with explicit context and services
 4. use developer tools to extract minimal segment packs from legacy shared files
-5. shrink and eventually remove `usersys` compatibility
-6. reduce the bootstrap to only the parser/tree/write requirements
-7. remove any remaining unnecessary Django coupling
+5. keep runtime resolution fully on explicit module paths and registry-based imports
+6. keep the supported runtime free of any internal `usersys` bootstrap stub
+7. reduce the bootstrap to only the parser/tree/write requirements
+8. publish and release `botscore` as the supported runtime dependency
+9. remove any remaining unnecessary Django and legacy Bots coupling from the release surface
 
 ## Definition of Done
 
 This package is close to its intended end state when:
 
-- first-class flows no longer depend on `usersys`
+- public translation APIs do not expose or require `usersys`
+- runtime resolution is module-first and registry-driven
+- no internal `usersys` stub remains in the supported runtime
 - first-class flows no longer depend on shared legacy recorddef catalogs
 - first-class mappings do not use Bots DB-backed helpers
 - Airflow supplies all business configuration explicitly

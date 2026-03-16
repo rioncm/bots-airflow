@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "bots-airflow"
 dynamic = ["version"]
-description = "Airflow-oriented extraction layer around Bots parse, tree, mapping, and serialization mechanics."
+description = "Airflow-oriented extraction of the core Bots EDI translation runtime."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
@@ -23,7 +23,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-  "bots-ediint>=3.3.1,<4",
+  "botscore>=0.1,<1",
 ]
 
 [project.optional-dependencies]

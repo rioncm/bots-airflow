@@ -1,3 +1,7 @@
+from ._runtime_support import ensure_botscore_importable
+
+ensure_botscore_importable()
+
 from .__about__ import __version__
 from .bootstrap import RuntimePaths, ensure_runtime
 from .context import TranslationContext

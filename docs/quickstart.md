@@ -8,11 +8,23 @@ This quickstart assumes:
 
 ## Install
 
-For local development:
+For local workspace development against the sibling extracted runtime checkout:
+
+```bash
+pip install -e ../bots_edi/botscore
+pip install -e .[dev,test,docs]
+```
+
+If `botscore` has already been published and you do not have the sibling checkout,
+the normal editable install also works:
 
 ```bash
 pip install -e .[dev,test,docs]
 ```
+
+The supported development model is direct use of `bots_airflow` plus a standalone
+`botscore` install. The package runtime can discover a sibling checkout for imports,
+but your environment still needs the dependency installed for packaging, docs, and tests.
 
 ## Basic facade usage
 
@@ -45,10 +57,11 @@ translator.translate(
 
 ## Low-level usage
 
-If you want to work directly with text:
+If you want to work directly with explicit grammar specs instead of the convenience helpers:
 
 ```python
-from bots_airflow import GrammarSpec, init
+from bots_airflow import GrammarSpec, TranslationContext, init
+from bots_airflow.mappings.x12.ls_to_osas_sscc import LivingSpacesToOsasSscc
 
 translator = init(
     grammar_in=GrammarSpec(
@@ -67,11 +80,17 @@ translator = init(
             "x12": "bots_airflow.grammars.x12.x12",
         },
     ),
-    map="bots_airflow.mappings.x12.pass_through",
-    mapping_source="python",
+    map=LivingSpacesToOsasSscc,
 )
 
-result = translator.translate_text(input_text)
+result = translator.translate_text(
+    input_text,
+    context=TranslationContext(
+        frompartner="DEMORETAIL",
+        topartner="DEMOFULFILL",
+        partners={"DEMORETAIL": {"attr2": "900001"}},
+    ),
+)
 print(result.output_text)
 ```
 
@@ -79,4 +98,5 @@ print(result.output_text)
 
 - `TranslationContext` is the preferred place for run-specific values.
 - mapping constructors should hold stable dependencies and options, not per-run state.
-- `usersys/` is still present for compatibility, but new flows should use first-class `bots_airflow.grammars` and `bots_airflow.mappings` modules.
+- registered mappings can be classes, callable objects, or importable modules that expose `main(...)`.
+- the supported runtime path is direct use of first-class `bots_airflow.grammars` and `bots_airflow.mappings` modules, not `usersys`-style package conventions.

@@ -1,4 +1,4 @@
-from bots.botsconfig import ID, MAX, MIN
+from botscore.constants import ID, MAX, MIN
 
 syntax = {
     'pass_all': True,

@@ -15,6 +15,19 @@ This should produce:
 - source distribution
 - wheel
 
+`bots_airflow` now depends on standalone `botscore`, so the release order is:
+
+1. build and publish `botscore`
+2. update or verify the `bots_airflow` dependency range if needed
+3. build and publish `bots_airflow`
+
+Suggested tag split:
+
+```text
+botscore-v0.1.0   -> publish botscore
+v0.1.0            -> publish bots-airflow
+```
+
 ## Test and validation
 
 Recommended local validation sequence:
@@ -26,19 +39,38 @@ mkdocs build --strict
 python -m build
 ```
 
+If the runtime extraction changed, also validate the sibling `botscore` package build:
+
+```bash
+cd ../bots_edi/botscore
+python -m build --wheel --sdist --no-isolation
+```
+
+For local workspace development, `bots_airflow` prefers that sibling `../bots_edi/botscore/src`
+checkout before falling back to the legacy `../bots_edi/bots` tree.
+
+The GitHub Actions validation workflow mirrors that model by checking out the sibling
+`bots_edi` repository and installing `botscore` from source before linting, testing,
+or building docs.
+
 ## GitHub Actions
 
 Recommended workflows:
 
 - `ci.yml`
   Runs lint, tests, docs build, and package build on pull requests and branch pushes.
+  Test and docs jobs install `botscore` from a sibling checkout so unreleased runtime
+  changes can be validated before publishing.
 - `publish.yml`
   Publishes tagged releases to PyPI and attaches build artifacts to the workflow or release.
+  This workflow only builds `bots_airflow`; it assumes the targeted `botscore` release
+  already exists.
 
 ## PyPI publishing
 
 Recommended model:
 
+- publish package name `botscore` before any dependent `bots-airflow` release
 - publish package name `bots-airflow`
 - use GitHub Trusted Publisher via OIDC
 - publish only from tagged releases
@@ -62,7 +94,14 @@ Recommended flow:
 
 ## Versioning
 
-The package should use semantic versioning.
+Both packages should use semantic versioning, but they do not need lockstep versions.
+
+Recommended policy:
+
+- `botscore` versions track runtime compatibility and parser/map/write behavior
+- `bots_airflow` versions track the Airflow-facing API, docs, and packaged flows
+- `bots_airflow` should express compatibility through its dependency range on `botscore`
+- publish a new `bots_airflow` release when the supported `botscore` range changes
 
 Suggested release meanings:
 

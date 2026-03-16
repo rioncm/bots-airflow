@@ -9,10 +9,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Iterable
 
-try:
-    from bots import botsconfig
-except ImportError:  # pragma: no cover - local repo fallback while migrating.
-    from bots_edi.bots.bots import botsconfig
+from botscore import constants as botsconfig
 
 
 def _load_module(reference: str) -> ModuleType:

@@ -23,42 +23,31 @@ class Translator:
         services: MappingServices | None = None,
         mapping_options: dict[str, Any] | None = None,
         runtime_root: str | Path | None = None,
-        usersys_root: str | Path | None = None,
-        mapping_source: str = 'python',
+        **compat_kwargs,
     ) -> None:
+        compat_kwargs.pop('usersys_root', None)
+        legacy_mapping_source = compat_kwargs.pop('mapping_source', None)
+        if legacy_mapping_source not in (None, 'python'):
+            raise TypeError(
+                'mapping_source is no longer supported; use a registered or importable '
+                'mapping module instead.'
+            )
+        if compat_kwargs:
+            unexpected = ', '.join(sorted(compat_kwargs))
+            raise TypeError(f'Unexpected keyword argument(s): {unexpected}')
+
         self.grammar_in = coerce_grammar_spec(grammar_in)
         self.grammar_out = coerce_grammar_spec(grammar_out)
         self.map = map
         self.services = services or MappingServices()
         self.mapping_options = dict(mapping_options or {})
         self.runtime_root = runtime_root
-        self.mapping_source = mapping_source
-        self.usersys_root = usersys_root or self._resolve_usersys_root()
         self._register_grammar_specs()
-
-    def _resolve_usersys_root(self) -> str | Path | None:
-        roots = [
-            root for root in (self.grammar_in.usersys_root, self.grammar_out.usersys_root) if root
-        ]
-        if not roots:
-            return None
-
-        normalized = {
-            str(Path(root).resolve()) if isinstance(root, Path) else str(root)
-            for root in roots
-        }
-        if len(normalized) != 1:
-            raise ValueError(
-                'grammar_in and grammar_out specify different usersys roots. '
-                'Pass usersys_root explicitly if that is intentional.'
-            )
-        return roots[0]
 
     def _resolve_mapping_reference(self) -> dict[str, Any]:
         if isinstance(self.map, str):
             return {
                 'mapping_module': self.map,
-                'mapping_source': self.mapping_source,
             }
 
         mapping_object = self.map
@@ -101,7 +90,6 @@ class Translator:
             from_messagetype=self.grammar_in.messagetype,
             to_editype=self.grammar_out.editype,
             to_messagetype=self.grammar_out.messagetype,
-            usersys_root=self.usersys_root,
             runtime_root=self.runtime_root,
             filename=filename,
             output_filename=output_filename,

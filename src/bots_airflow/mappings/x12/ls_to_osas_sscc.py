@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bots.botsconfig import DONE
+from botscore.constants import DONE
 
 from bots_airflow.context import TranslationContext
 from bots_airflow.mapping import BaseMapping
