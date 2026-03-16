@@ -1,5 +1,4 @@
 import sys
-from pathlib import Path
 
 from bots_airflow import _runtime_support
 from bots_airflow._core_discovery import candidate_botscore_roots, find_local_botscore_checkout
@@ -55,7 +54,11 @@ def test_runtime_support_uses_sibling_standalone_checkout(monkeypatch, tmp_path)
         'find_spec',
         lambda _name: None,
     )
-    monkeypatch.setattr(sys, 'path', [path for path in original_path if path != str(standalone_root)])
+    monkeypatch.setattr(
+        sys,
+        'path',
+        [path for path in original_path if path != str(standalone_root)],
+    )
 
     _runtime_support.ensure_botscore_importable()
 

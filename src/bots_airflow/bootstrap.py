@@ -150,9 +150,9 @@ def _core_init(runtime_paths: RuntimePaths) -> None:
     _ensure_import_path(runtime_paths.core_root)
 
     from botscore import config as core_config
+    from botscore import node as core_node
     from botscore import runtime as core_runtime
     from botscore import state
-    from botscore import node as core_node
 
     ini = core_config.BotsConfig()
     if not ini.has_section('directories'):

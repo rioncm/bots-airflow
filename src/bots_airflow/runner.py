@@ -66,7 +66,9 @@ def _load_mapping_main(mapping_module: str):
         module_or_mapping, _modulefile = resolved
         if isinstance(module_or_mapping, ModuleType):
             if not hasattr(module_or_mapping, 'main'):
-                raise AttributeError(f'Mapping module {mapping_module!r} does not define main(...).')
+                raise AttributeError(
+                    f'Mapping module {mapping_module!r} does not define main(...).'
+                )
             return module_or_mapping.main
         return _coerce_mapping_main(module_or_mapping)
 
