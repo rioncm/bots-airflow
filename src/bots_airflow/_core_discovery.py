@@ -4,8 +4,10 @@ from pathlib import Path
 
 
 def candidate_botscore_roots(project_root: Path) -> tuple[Path, ...]:
-    sibling_root = project_root.parent / 'bots_edi'
+    workspace_root = project_root.parent
+    sibling_root = workspace_root / 'bots_edi'
     return (
+        (workspace_root / 'bots_core' / 'src').resolve(),
         (sibling_root / 'botscore' / 'src').resolve(),
         (sibling_root / 'bots').resolve(),
     )

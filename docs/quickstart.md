@@ -11,7 +11,7 @@ This quickstart assumes:
 For local workspace development against the sibling extracted runtime checkout:
 
 ```bash
-pip install -e ../bots_edi/botscore
+pip install -e ../bots_core
 pip install -e .[dev,test,docs]
 ```
 

@@ -21,11 +21,12 @@ This should produce:
 2. update or verify the `bots_airflow` dependency range if needed
 3. build and publish `bots_airflow`
 
-Suggested tag split:
+Because `botscore` now lives in its own repository, both repositories can use normal
+release tags:
 
 ```text
-botscore-v0.1.0   -> publish botscore
-v0.1.0            -> publish bots-airflow
+v0.1.0            -> publish botscore in the bots_core repo
+v0.1.0            -> publish bots-airflow in the bots_airflow repo
 ```
 
 ## Test and validation
@@ -42,12 +43,13 @@ python -m build
 If the runtime extraction changed, also validate the sibling `botscore` package build:
 
 ```bash
-cd ../bots_edi/botscore
+cd ../bots_core
 python -m build --wheel --sdist --no-isolation
 ```
 
-For local workspace development, `bots_airflow` prefers that sibling `../bots_edi/botscore/src`
-checkout before falling back to the legacy `../bots_edi/bots` tree.
+For local workspace development, `bots_airflow` prefers that sibling `../bots_core/src`
+checkout. During the transition it can still fall back to `../bots_edi/botscore/src`
+and then to the legacy `../bots_edi/bots` tree.
 
 That sibling checkout is a local development convenience, not the release model.
 `bots_airflow` CI and publish workflows should validate the declared standalone

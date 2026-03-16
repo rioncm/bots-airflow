@@ -2,19 +2,32 @@ import sys
 from pathlib import Path
 
 from bots_airflow import _runtime_support
-from bots_airflow._core_discovery import find_local_botscore_checkout
+from bots_airflow._core_discovery import candidate_botscore_roots, find_local_botscore_checkout
 from bots_airflow.bootstrap import _resolve_core_runtime
 
 
-def test_find_local_botscore_checkout_prefers_standalone_src(tmp_path):
+def test_candidate_botscore_roots_prefers_new_repo_first(tmp_path):
     project_root = tmp_path / 'bots_airflow'
     project_root.mkdir()
 
-    standalone_package = tmp_path / 'bots_edi' / 'botscore' / 'src' / 'botscore'
+    roots = candidate_botscore_roots(project_root)
+
+    assert roots == (
+        (tmp_path / 'bots_core' / 'src').resolve(),
+        (tmp_path / 'bots_edi' / 'botscore' / 'src').resolve(),
+        (tmp_path / 'bots_edi' / 'bots').resolve(),
+    )
+
+
+def test_find_local_botscore_checkout_prefers_new_repo_src(tmp_path):
+    project_root = tmp_path / 'bots_airflow'
+    project_root.mkdir()
+
+    standalone_package = tmp_path / 'bots_core' / 'src' / 'botscore'
     standalone_package.mkdir(parents=True)
     (standalone_package / '__init__.py').write_text('', encoding='utf-8')
 
-    legacy_package = tmp_path / 'bots_edi' / 'bots' / 'botscore'
+    legacy_package = tmp_path / 'bots_edi' / 'botscore' / 'src' / 'botscore'
     legacy_package.mkdir(parents=True)
     (legacy_package / '__init__.py').write_text('', encoding='utf-8')
 
@@ -30,7 +43,7 @@ def test_runtime_support_uses_sibling_standalone_checkout(monkeypatch, tmp_path)
     project_root = tmp_path / 'bots_airflow'
     project_root.mkdir()
 
-    standalone_root = tmp_path / 'bots_edi' / 'botscore' / 'src'
+    standalone_root = tmp_path / 'bots_core' / 'src'
     standalone_package = standalone_root / 'botscore'
     standalone_package.mkdir(parents=True)
     (standalone_package / '__init__.py').write_text('', encoding='utf-8')
@@ -53,7 +66,7 @@ def test_bootstrap_resolves_sibling_standalone_checkout(monkeypatch, tmp_path):
     project_root = tmp_path / 'bots_airflow'
     project_root.mkdir()
 
-    standalone_root = tmp_path / 'bots_edi' / 'botscore' / 'src'
+    standalone_root = tmp_path / 'bots_core' / 'src'
     standalone_package = standalone_root / 'botscore'
     standalone_package.mkdir(parents=True)
     (standalone_package / '__init__.py').write_text('', encoding='utf-8')
@@ -67,3 +80,19 @@ def test_bootstrap_resolves_sibling_standalone_checkout(monkeypatch, tmp_path):
 
     assert resolved_root == standalone_root.resolve()
     assert resolved_package == standalone_package.resolve()
+
+
+def test_find_local_botscore_checkout_falls_back_to_transition_paths(tmp_path):
+    project_root = tmp_path / 'bots_airflow'
+    project_root.mkdir()
+
+    transitional_package = tmp_path / 'bots_edi' / 'botscore' / 'src' / 'botscore'
+    transitional_package.mkdir(parents=True)
+    (transitional_package / '__init__.py').write_text('', encoding='utf-8')
+
+    resolved = find_local_botscore_checkout(project_root)
+
+    assert resolved == (
+        transitional_package.parent.resolve(),
+        transitional_package.resolve(),
+    )

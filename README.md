@@ -51,13 +51,13 @@ Django is no longer part of the primary translation runtime path for extracted f
 
 Grammars do not need to be reachable through Bots `usersys` lookup rules. `GrammarSpec` can bind explicit module paths, and the registry-backed import hook satisfies grammar reads from those explicit registrations first.
 
-For local development in this workspace, the bootstrap prefers a sibling standalone `../bots_edi/botscore/src` checkout. It can still fall back to `../bots_edi/bots` while the upstream repo remains in transition.
+For local development in this workspace, the bootstrap prefers a sibling standalone `../bots_core/src` checkout. During the transition it can still fall back to `../bots_edi/botscore/src` and then to `../bots_edi/bots`.
 
 For packaging, docs, and tests in a local workspace, install the sibling `botscore`
 package first:
 
 ```bash
-pip install -e ../bots_edi/botscore
+pip install -e ../bots_core
 pip install -e .[dev,test,docs]
 ```
 
