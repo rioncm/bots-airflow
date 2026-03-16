@@ -42,10 +42,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/rion/bots-airflow"
+Homepage = "https://github.com/rioncm/bots-airflow"
 Documentation = "https://bots-airflow.readthedocs.io/"
-Repository = "https://github.com/rion/bots-airflow"
-Issues = "https://github.com/rion/bots-airflow/issues"
+Repository = "https://github.com/rioncm/bots-airflow"
+Issues = "https://github.com/rioncm/bots-airflow/issues"
 PyPI = "https://pypi.org/project/bots-airflow/"
 
 [tool.hatch.version]

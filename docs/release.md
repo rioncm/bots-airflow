@@ -65,8 +65,8 @@ Recommended workflows:
   the released package boundary.
 - `publish.yml`
   Publishes tagged releases to PyPI and attaches build artifacts to the workflow or release.
-  This workflow only builds `bots_airflow`; it assumes the targeted `botscore` release
-  already exists.
+  This workflow only builds `bots_airflow`, validates the artifacts with `twine check`,
+  and assumes the targeted `botscore` release already exists.
 
 ## PyPI publishing
 

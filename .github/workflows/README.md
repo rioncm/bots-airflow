@@ -28,10 +28,16 @@ Runs on version tags like `v0.1.0` and on manual dispatch.
 Jobs:
 
 - `build`
-  Builds the `bots_airflow` source distribution and wheel and uploads them as an
-  artifact.
+  Builds the `bots_airflow` source distribution and wheel, validates them with
+  `twine check`, and uploads them as an artifact.
 - `publish-pypi`
   Publishes the uploaded distributions to PyPI using GitHub Trusted Publisher.
 
 This workflow assumes the required standalone `botscore` release has already been
 published according to the release order documented in `docs/release.md`.
+
+Expected Trusted Publisher configuration:
+
+- repository: `rioncm/bots-airflow`
+- workflow file: `.github/workflows/publish.yml`
+- environment: `pypi`
