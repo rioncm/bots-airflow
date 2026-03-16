@@ -61,6 +61,10 @@ pip install -e ../bots_edi/botscore
 pip install -e .[dev,test,docs]
 ```
 
+Repository CI does not assume that sibling checkout exists. It validates `bots_airflow`
+against the declared standalone `botscore` package dependency, which means the
+compatible `botscore` release needs to exist before `bots_airflow` release validation.
+
 ## Layout
 
 - `src/bots_airflow/bootstrap.py`

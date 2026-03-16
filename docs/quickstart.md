@@ -26,6 +26,9 @@ The supported development model is direct use of `bots_airflow` plus a standalon
 `botscore` install. The package runtime can discover a sibling checkout for imports,
 but your environment still needs the dependency installed for packaging, docs, and tests.
 
+Repository CI is intentionally simpler than the local workspace pattern: it installs
+the declared `botscore` package dependency and does not assume a sibling checkout.
+
 ## Basic facade usage
 
 ```python

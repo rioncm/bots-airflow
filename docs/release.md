@@ -49,9 +49,9 @@ python -m build --wheel --sdist --no-isolation
 For local workspace development, `bots_airflow` prefers that sibling `../bots_edi/botscore/src`
 checkout before falling back to the legacy `../bots_edi/bots` tree.
 
-The GitHub Actions validation workflow mirrors that model by checking out the sibling
-`bots_edi` repository and installing `botscore` from source before linting, testing,
-or building docs.
+That sibling checkout is a local development convenience, not the release model.
+`bots_airflow` CI and publish workflows should validate the declared standalone
+`botscore` package dependency, not assume a second repository checkout.
 
 ## GitHub Actions
 
@@ -59,8 +59,8 @@ Recommended workflows:
 
 - `ci.yml`
   Runs lint, tests, docs build, and package build on pull requests and branch pushes.
-  Test and docs jobs install `botscore` from a sibling checkout so unreleased runtime
-  changes can be validated before publishing.
+  Test and docs jobs install the declared `botscore` package dependency and validate
+  the released package boundary.
 - `publish.yml`
   Publishes tagged releases to PyPI and attaches build artifacts to the workflow or release.
   This workflow only builds `bots_airflow`; it assumes the targeted `botscore` release
