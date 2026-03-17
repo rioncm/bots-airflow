@@ -9,9 +9,9 @@ except ImportError:  # pragma: no cover - illustrative fallback for local import
 
 
 from bots_airflow import TranslationContext, init
-from bots_airflow.grammar.livingspaces import x12_in
-from bots_airflow.grammar.pminc import json_out
-from bots_airflow.translate.livingspaces import x12_to_json
+from local_runtime.grammar.livingspaces import x12_in
+from local_runtime.grammar.pminc import json_out
+from local_runtime.translate.livingspaces import x12_to_json
 
 
 @task()

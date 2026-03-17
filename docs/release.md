@@ -1,6 +1,7 @@
 # Release and Documentation Workflow
 
-This page describes the intended packaging and publishing workflow for `bots_airflow`.
+This page describes the intended packaging and publishing workflow for
+`bots_airflow`.
 
 ## Package build
 
@@ -15,19 +16,11 @@ This should produce:
 - source distribution
 - wheel
 
-`bots_airflow` now depends on standalone `botscore`, so the release order is:
+`bots_airflow` depends on standalone `botscore`, so the release order is:
 
 1. build and publish `botscore`
 2. update or verify the `bots_airflow` dependency range if needed
 3. build and publish `bots_airflow`
-
-Because `botscore` now lives in its own repository, both repositories can use normal
-release tags:
-
-```text
-v0.1.0            -> publish botscore in the bots_core repo
-v0.1.0            -> publish bots-airflow in the bots_airflow repo
-```
 
 ## Test and validation
 
@@ -47,13 +40,9 @@ cd ../bots_core
 python -m build --wheel --sdist --no-isolation
 ```
 
-For local workspace development, `bots_airflow` prefers that sibling `../bots_core/src`
-checkout. During the transition it can still fall back to `../bots_edi/botscore/src`
-and then to the legacy `../bots_edi/bots` tree.
-
-That sibling checkout is a local development convenience, not the release model.
-`bots_airflow` CI and publish workflows should validate the declared standalone
-`botscore` package dependency, not assume a second repository checkout.
+For local workspace development, `bots_airflow` prefers a sibling `../bots_core/src`
+checkout. That sibling checkout is a local development convenience, not the release
+model.
 
 ## GitHub Actions
 
@@ -61,12 +50,8 @@ Recommended workflows:
 
 - `ci.yml`
   Runs lint, tests, docs build, and package build on pull requests and branch pushes.
-  Test and docs jobs install the declared `botscore` package dependency and validate
-  the released package boundary.
 - `publish.yml`
   Publishes tagged releases to PyPI and attaches build artifacts to the workflow or release.
-  This workflow only builds `bots_airflow`, validates the artifacts with `twine check`,
-  and assumes the targeted `botscore` release already exists.
 
 ## PyPI publishing
 
@@ -101,12 +86,12 @@ Both packages should use semantic versioning, but they do not need lockstep vers
 Recommended policy:
 
 - `botscore` versions track runtime compatibility and parser/map/write behavior
-- `bots_airflow` versions track the Airflow-facing API, docs, and packaged flows
+- `bots_airflow` versions track the public Airflow-facing API, docs, and developer tooling
+- project-specific runtime modules version independently from `bots_airflow`
 - `bots_airflow` should express compatibility through its dependency range on `botscore`
-- publish a new `bots_airflow` release when the supported `botscore` range changes
 
 Suggested release meanings:
 
 - patch for fixes and low-risk compatibility work
-- minor for new flows, new grammars, or new mapping APIs that are backwards compatible
+- minor for new public runtime APIs, docs, or generic developer utilities that are backwards compatible
 - major for breaking runtime or mapping API changes

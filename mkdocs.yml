@@ -20,7 +20,5 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Quickstart: quickstart.md
-  - Examples:
-      - 850 Inbound: examples/850-inbound.md
-      - 846 Outbound: examples/846-outbound.md
+  - Runtime Modules: runtime-modules.md
   - Release and Docs: release.md

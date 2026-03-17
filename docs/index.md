@@ -1,21 +1,20 @@
 # bots_airflow Docs
 
-This directory is the start of the package-level documentation for `bots_airflow`.
+This documentation covers the public `bots_airflow` runtime package.
 
 Current pages:
 
 - [Architecture and Release Vision](architecture.md)
 - [Quickstart](quickstart.md)
-- [850 Inbound Example](examples/850-inbound.md)
-- [846 Outbound Example](examples/846-outbound.md)
+- [Runtime Modules](runtime-modules.md)
 - [Release and Documentation Workflow](release.md)
 
 Planned documentation set:
 
 - architecture and package boundaries
-- quickstart examples
-- translation API reference
-- grammar authoring guide
-- mapping authoring guide
+- quickstart
+- runtime module authoring
+- context and services
 - developer tools
+- API reference
 - release and publishing guide

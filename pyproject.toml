@@ -58,7 +58,6 @@ packages = ["src/bots_airflow"]
 include = [
   "/src/bots_airflow",
   "/docs",
-  "/examples",
   "/tests",
   "/README.md",
   "/pyproject.toml",

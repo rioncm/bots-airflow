@@ -2,27 +2,30 @@
 
 This document describes the target end state for `bots_airflow`.
 
-It is intentionally a design target, not a statement that every item below is already implemented.
-
 ## Purpose
 
-`bots_airflow` exists to narrow Bots down to the parts that are valuable in a modern Apache Airflow DAG:
+`bots_airflow` exists to narrow Bots down to the parts that are valuable in a
+modern Apache Airflow DAG:
 
 - grammar loading
 - parsing into message trees
 - mapping execution
 - serialization
 
-Everything else should move to explicit application code and orchestration outside Bots.
+Everything else should move to explicit application code and orchestration outside
+Bots.
 
-## Product Boundary
+## Product boundary
 
 Target responsibility split:
 
-- Airflow owns orchestration, retries, schedules, branching, persistence, callbacks, object storage, and business configuration.
+- Airflow owns orchestration, retries, schedules, branching, persistence, callbacks,
+  object storage, and business configuration.
 - `bots_airflow` owns translation execution: parse, tree, map, write.
-- Developer tools under `src/bots_airflow/devtools` help extract and curate artifacts used by the runtime.
-- The supported runtime surface should be direct module and registry-based translation flows, not legacy Bots directory conventions.
+- project-specific grammars and mappings live outside the public package and are
+  imported at runtime.
+- developer tools under `src/bots_airflow/devtools` help extract and curate
+  runtime artifacts.
 
 What should not remain in the hot path:
 
@@ -34,11 +37,9 @@ What should not remain in the hot path:
 - full `generalinit()` bootstrap
 - Django as a full translation runtime dependency
 
-## Runtime Model
+## Runtime model
 
-The runtime API should stay explicit.
-
-Representative call shapes:
+Representative call shape:
 
 ```python
 translator = init(
@@ -48,12 +49,6 @@ translator = init(
 )
 
 translator.translate(input_path, output_path, context=...)
-```
-
-or:
-
-```python
-result = translator.translate_text(input_text, context=...)
 ```
 
 Execution inputs should be explicit:
@@ -66,7 +61,22 @@ Execution inputs should be explicit:
 
 Execution state should not be pulled implicitly from a Bots database.
 
-## Mapping Model
+## Runtime modules
+
+The public package no longer ships partner-specific flows. Consumers provide their
+own runtime modules in one of two forms:
+
+- importable package modules installed alongside `bots_airflow`
+- local modules available on the Airflow `PYTHONPATH`
+
+`GrammarSpec` accepts import path strings or imported module objects, and mappings
+can be passed as classes, callables, objects with `main(...)`, or importable
+module paths.
+
+This keeps the public package generic while allowing project-specific flows to
+evolve independently.
+
+## Mapping model
 
 Mappings should follow a clear split:
 
@@ -90,9 +100,9 @@ Examples of per-run values:
 
 This keeps mappings testable, deterministic, and retry-safe.
 
-## Package Layout
+## Package layout
 
-Target package shape:
+Public package shape:
 
 - `src/bots_airflow/translator.py`
   Public translation facade.
@@ -102,14 +112,12 @@ Target package shape:
   Base classes and service interfaces.
 - `src/bots_airflow/registry.py`
   Explicit grammar and mapping registry.
-- `src/bots_airflow/grammars/`
-  First-class grammar modules and extracted segment packs.
-- `src/bots_airflow/mappings/`
-  First-class mapping modules.
 - `src/bots_airflow/devtools/`
   Developer-only extraction and maintenance utilities.
 
-## Packaging Target
+Project-specific runtime modules should live outside `src/bots_airflow`.
+
+## Packaging target
 
 The intended distribution model is:
 
@@ -124,28 +132,20 @@ Recommended packaging approach:
 - keep runtime dependencies minimal
 - provide optional dependency groups for `dev`, `docs`, and `test`
 
-Recommended package metadata:
-
-- project name: `bots-airflow`
-- python package: `bots_airflow`
-- semantic versioning
-- long description sourced from project docs or README
-- project URLs for GitHub, documentation, issue tracker, and PyPI
-
 Recommended packaging rule:
 
-- runtime artifacts such as extracted segment packs ship as normal Python modules committed in the repo
-- developer-generated artifacts are reviewed and committed before release
+- the public distribution ships the runtime, not partner-specific grammars or mappings
+- developer-generated runtime artifacts are reviewed and shipped in the owning
+  runtime module package
 - runtime should not generate or mutate package assets
 
-## Repository Target
+## Repository target
 
 Recommended repository layout:
 
 ```text
 repo-root/
   src/bots_airflow/
-  examples/
   tests/
   docs/
   pyproject.toml
@@ -154,25 +154,14 @@ repo-root/
   .readthedocs.yaml
 ```
 
-Recommended top-level concerns:
+Project-specific runtime modules can live in separate repositories or local
+workspace directories, but they should not be part of the public package boundary.
 
-- package source in `src/bots_airflow/`
-- example fixtures in `examples/`
-- tests separated from package code
-- documentation in `docs/`
-- GitHub Actions for test/build/release workflows
-- Read the Docs configuration in `.readthedocs.yaml`
-
-## CI/CD Target
+## CI/CD target
 
 Recommended GitHub Actions pipeline:
 
 ### Pull Request / Push Validation
-
-Trigger:
-
-- pull requests
-- pushes to main branches
 
 Jobs:
 
@@ -190,10 +179,6 @@ Typical checks:
 
 ### Release Build
 
-Trigger:
-
-- version tag such as `v0.1.0`
-
 Jobs:
 
 - build sdist and wheel
@@ -205,112 +190,14 @@ Recommended publishing model:
 - use PyPI Trusted Publisher with GitHub OIDC
 - do not store long-lived PyPI API tokens in repository secrets unless absolutely necessary
 
-Recommended release flow:
-
-1. merge release-ready changes
-2. create version tag
-3. CI builds distribution
-4. CI publishes to PyPI
-5. CI creates GitHub release notes or attaches artifacts
-
-## Documentation Target
-
-The goal is full package documentation published separately from the legacy repo docs.
-
-Recommended documentation stack:
-
-- Markdown-based docs
-- MkDocs with Material theme
-- `mkdocstrings` for API reference pages
-- Read the Docs for hosted builds
-
-Why this stack:
-
-- good code-and-guide balance
-- simple Markdown authoring
-- easy API extraction from Python modules
-- straightforward Read the Docs support
-
-Recommended documentation structure:
-
-```text
-docs/
-  index.md
-  architecture.md
-  quickstart.md
-  concepts/
-  guides/
-  examples/
-  api/
-```
-
-Suggested pages:
-
-- architecture and package boundaries
-- quickstart
-- grammar authoring
-- mapping authoring
-- context and services
-- developer tools
-- examples for 850 and 846 flows
-- API reference
-- release and publishing guide
-
-## Read the Docs Target
-
-Recommended Read the Docs setup:
-
-- `.readthedocs.yaml` committed in the repo
-- docs build installed via `pip install .[docs]`
-- documentation versioned from Git tags or branches
-
-Recommended behavior:
-
-- build docs for pull requests in CI
-- publish docs from the default branch
-- allow tagged releases to appear as versioned docs
-
-## Example End-to-End Flows
-
-### 850 inbound
-
-- input: X12 850
-- parse using first-class `bots_airflow.grammars.x12`
-- map with first-class `bots_airflow.mappings.x12`
-- output: CSV or other explicit target format
-- routing and downstream steps remain outside the package
-
-### 846 outbound
-
-- input: inventory JSON
-- parse using first-class `bots_airflow.grammars.json`
-- map with first-class `bots_airflow.mappings.json`
-- output: X12 846
-- control numbers and partner-specific values come from context or injected services
-
-## Implementation Path
-
-The practical sequence from the current state to the desired objective is:
-
-1. keep real grammars in `src/bots_airflow/grammars`
-2. keep real mappings in `src/bots_airflow/mappings`
-3. replace DB-backed Bots helper usage with explicit context and services
-4. use developer tools to extract minimal segment packs from legacy shared files
-5. keep runtime resolution fully on explicit module paths and registry-based imports
-6. keep the supported runtime free of any internal `usersys` bootstrap stub
-7. reduce the bootstrap to only the parser/tree/write requirements
-8. publish and release `botscore` as the supported runtime dependency
-9. remove any remaining unnecessary Django and legacy Bots coupling from the release surface
-
-## Definition of Done
+## Definition of done
 
 This package is close to its intended end state when:
 
 - public translation APIs do not expose or require `usersys`
 - runtime resolution is module-first and registry-driven
 - no internal `usersys` stub remains in the supported runtime
-- first-class flows no longer depend on shared legacy recorddef catalogs
-- first-class mappings do not use Bots DB-backed helpers
+- project-specific flows are maintained outside the public distribution
 - Airflow supplies all business configuration explicitly
 - package builds cleanly as a standard Python distribution
 - docs build cleanly and publish to Read the Docs

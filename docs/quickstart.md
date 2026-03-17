@@ -3,10 +3,23 @@
 This quickstart assumes:
 
 - you have Python 3.11+
-- you can install package dependencies
 - you want to run translations explicitly from Python, not through Bots engine routes
+- your project-specific grammars and mappings live in your own runtime modules
 
-## Install
+## Install in Airflow
+
+Production install:
+
+```bash
+pip install bots-airflow
+pip install my-company-edi-runtime
+```
+
+If your runtime modules are not distributed as a wheel, make sure they are still
+importable in the Airflow environment, for example by placing them on the DAG
+`PYTHONPATH`.
+
+## Local development
 
 For local workspace development against the sibling extracted runtime checkout:
 
@@ -22,79 +35,65 @@ the normal editable install also works:
 pip install -e .[dev,test,docs]
 ```
 
-The supported development model is direct use of `bots_airflow` plus a standalone
-`botscore` install. The package runtime can discover a sibling checkout for imports,
-but your environment still needs the dependency installed for packaging, docs, and tests.
-
-Repository CI is intentionally simpler than the local workspace pattern: it installs
-the declared `botscore` package dependency and does not assume a sibling checkout.
-
-## Basic facade usage
+## Direct use with imported modules
 
 ```python
-from pathlib import Path
+import my_company_edi.grammars.csv.order_lines_out as order_lines_out
+import my_company_edi.grammars.json.orders_in as orders_in
 
-from bots_airflow import TranslationContext, init
-from bots_airflow.grammar.livingspaces import x12_in
-from bots_airflow.grammar.osas import sscc_out
-from bots_airflow.mappings.x12.ls_to_osas_sscc import LivingSpacesToOsasSscc
-
-translator = init(
-    grammar_in=x12_in,
-    grammar_out=sscc_out,
-    map=LivingSpacesToOsasSscc,
-)
-
-translator.translate(
-    Path("input.edi"),
-    Path("output.csv"),
-    context=TranslationContext(
-        frompartner="DEMORETAIL",
-        topartner="DEMOFULFILL",
-        partners={
-            "DEMORETAIL": {"attr2": "900001"},
-        },
-    ),
-)
-```
-
-## Low-level usage
-
-If you want to work directly with explicit grammar specs instead of the convenience helpers:
-
-```python
 from bots_airflow import GrammarSpec, TranslationContext, init
-from bots_airflow.mappings.x12.ls_to_osas_sscc import LivingSpacesToOsasSscc
+from my_company_edi.mappings.order_lines import OrdersToCsv
 
 translator = init(
     grammar_in=GrammarSpec(
-        editype="x12",
-        messagetype="x12",
-        module="bots_airflow.grammars.x12.x12",
-        support_modules={
-            "850_ls_inbound4010": "bots_airflow.grammars.x12._850_ls_inbound4010",
-        },
+        editype="json",
+        messagetype="orders",
+        module=orders_in,
     ),
     grammar_out=GrammarSpec(
-        editype="x12",
-        messagetype="850_ls_inbound4010",
-        module="bots_airflow.grammars.x12._850_ls_inbound4010",
-        support_modules={
-            "x12": "bots_airflow.grammars.x12.x12",
-        },
+        editype="csv",
+        messagetype="order_lines",
+        module=order_lines_out,
     ),
-    map=LivingSpacesToOsasSscc,
+    map=OrdersToCsv,
 )
 
 result = translator.translate_text(
     input_text,
     context=TranslationContext(
-        frompartner="DEMORETAIL",
-        topartner="DEMOFULFILL",
-        partners={"DEMORETAIL": {"attr2": "900001"}},
+        reference="batch-001",
+        values={"order_prefix": "WEB-"},
     ),
 )
 print(result.output_text)
+```
+
+## Use import path strings
+
+If you prefer to keep the DAG code more declarative, use import path strings:
+
+```python
+from bots_airflow import GrammarSpec, TranslationContext, init
+
+translator = init(
+    grammar_in=GrammarSpec(
+        editype="json",
+        messagetype="orders",
+        module="my_company_edi.grammars.json.orders_in",
+    ),
+    grammar_out=GrammarSpec(
+        editype="csv",
+        messagetype="order_lines",
+        module="my_company_edi.grammars.csv.order_lines_out",
+    ),
+    map="my_company_edi.mappings.order_lines_module",
+)
+
+translator.translate(
+    "input.json",
+    "output.csv",
+    context=TranslationContext(reference="batch-002"),
+)
 ```
 
 ## Notes
@@ -102,4 +101,4 @@ print(result.output_text)
 - `TranslationContext` is the preferred place for run-specific values.
 - mapping constructors should hold stable dependencies and options, not per-run state.
 - registered mappings can be classes, callable objects, or importable modules that expose `main(...)`.
-- the supported runtime path is direct use of first-class `bots_airflow.grammars` and `bots_airflow.mappings` modules, not `usersys`-style package conventions.
+- the public package does not ship partner-specific grammars or mappings.
