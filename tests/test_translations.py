@@ -1,7 +1,13 @@
 import csv
 import importlib
 
-from bots_airflow import GrammarSpec, TranslationContext, clear_import_registry, init, register_mapping
+from bots_airflow import (
+    GrammarSpec,
+    TranslationContext,
+    clear_import_registry,
+    init,
+    register_mapping,
+)
 
 ORDERS_JSON = """[
   {"order_id": "1001", "sku": "SKU-001", "quantity": "2"},
@@ -11,8 +17,12 @@ ORDERS_JSON = """[
 
 def test_translate_with_imported_runtime_modules(tmp_path):
     grammar_in_module = importlib.import_module('tests.runtime_modules.grammars.json.orders_in')
-    grammar_out_module = importlib.import_module('tests.runtime_modules.grammars.csv.order_lines_out')
-    mapping_cls = importlib.import_module('tests.runtime_modules.mappings.order_lines').JsonOrdersToCsv
+    grammar_out_module = importlib.import_module(
+        'tests.runtime_modules.grammars.csv.order_lines_out'
+    )
+    mapping_cls = importlib.import_module(
+        'tests.runtime_modules.mappings.order_lines'
+    ).JsonOrdersToCsv
 
     translator = init(
         grammar_in=GrammarSpec(

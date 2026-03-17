@@ -1,5 +1,5 @@
-import inspect
 import importlib.util
+import inspect
 from dataclasses import fields
 
 from bots_airflow import GrammarSpec, TranslationRequest, Translator, ensure_runtime
