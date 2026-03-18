@@ -4,7 +4,6 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bots-airflow"
-version = "0.1.0-alpha"
 dynamic = ["version"]
 description = "Airflow-oriented extraction of the core Bots EDI translation runtime."
 readme = "README.md"
