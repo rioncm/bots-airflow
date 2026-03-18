@@ -38,8 +38,8 @@ context = TranslationContext(
         "po_number_source": "beg03",
     },
     partners={
-        "LIVINGSPC": {"attr2": "900001"},
-        "PLEASANTMA": {"attr1": "0645"},
+        "LIVINGSPC": {"erp_id": "900001"},
+        "PLEASANTMA": {"reference_number": "645"},
     },
 )
 ```
@@ -53,7 +53,7 @@ context = TranslationContext(
 - `reference`: caller-supplied reference value; often used for logging or output `ta_info`
 - `metadata`: upstream context you want to carry as a block
 - `values`: key/value settings that your mapping reads directly
-- `partners`: partner-field data keyed by partner id
+- `partners`: partner-field data keyed by partner id and can contain key:values referenced to the partner
 
 In practice:
 

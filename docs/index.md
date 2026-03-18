@@ -8,6 +8,7 @@ Current pages:
 - [Quickstart](quickstart.md)
 - [Translation Execution](translation-execution.md)
 - [TranslationContext and Map Authoring](translation-context.md)
+- [Mapping in Airflow](mapping-in-airflow.md)
 - [Runtime Modules](runtime-modules.md)
 - [Extract Recorddefs](extract-recorddefs.md)
 - [Release and Documentation Workflow](release.md)
