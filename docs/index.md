@@ -6,7 +6,10 @@ Current pages:
 
 - [Architecture and Release Vision](architecture.md)
 - [Quickstart](quickstart.md)
+- [Translation Execution](translation-execution.md)
+- [TranslationContext and Map Authoring](translation-context.md)
 - [Runtime Modules](runtime-modules.md)
+- [Extract Recorddefs](extract-recorddefs.md)
 - [Release and Documentation Workflow](release.md)
 
 Planned documentation set:
@@ -14,7 +17,6 @@ Planned documentation set:
 - architecture and package boundaries
 - quickstart
 - runtime module authoring
-- context and services
 - developer tools
 - API reference
 - release and publishing guide

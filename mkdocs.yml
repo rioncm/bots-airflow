@@ -20,5 +20,8 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Quickstart: quickstart.md
+  - Translation Execution: translation-execution.md
+  - TranslationContext: translation-context.md
   - Runtime Modules: runtime-modules.md
+  - Extract Recorddefs: extract-recorddefs.md
   - Release and Docs: release.md

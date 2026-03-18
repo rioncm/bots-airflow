@@ -155,7 +155,7 @@ python3 -m bots_airflow.devtools.extract_recorddefs \
 
 This utility is intentionally outside the runtime path. Developers use it to turn
 large shared segment catalogs into small reviewed Python modules that the runtime
-imports directly.
+imports directly. Full usage and examples: [docs/extract-recorddefs.md](docs/extract-recorddefs.md)
 
 ## Mapping model
 
