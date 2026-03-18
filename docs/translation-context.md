@@ -55,6 +55,25 @@ context = TranslationContext(
 - `values`: key/value settings that your mapping reads directly
 - `partners`: partner-field data keyed by partner id and can contain key:values referenced to the partner
 
+## Common access patterns
+
+These are the current direct access patterns:
+
+- `context.frompartner` returns the single `frompartner` value passed in
+- `context.topartner` returns the single `topartner` value passed in
+- `context.value("some_key")` searches only `context.values`
+- `context.required_value("some_key")` raises immediately if the key is missing
+- `context.metadata.get("some_key")` searches only `context.metadata`
+- `context.partner_value("from", "some_key")` reads from the partner record for `context.frompartner`
+- `context.partner_value("to", "some_key")` reads from the partner record for `context.topartner`
+- `context.required_partner_value("from", "some_key")` raises immediately if the partner field is missing
+
+`context.partner_value(...)` also still accepts an explicit partner id:
+
+```python
+customer_id = context.partner_value("LIVINGSPC", "customer_id", "")
+```
+
 In practice:
 
 - use `values` for settings that affect mapping logic
@@ -117,6 +136,14 @@ Use `context.value(key, default)` for run-specific settings:
 ```python
 order_prefix = context.value("order_prefix", "")
 customer_id = context.value("customer_id", "")
+source_key = context.metadata.get("source_key", "")
+```
+
+If the value must exist, use `required_value(...)` to fail fast:
+
+```python
+customer_id = context.required_value("customer_id")
+sender_name = context.required_value("sender_name", allow_blank=False)
 ```
 
 This is the cleanest place for:
@@ -132,7 +159,19 @@ Use `context.partner_value(partner_id, field, default)` when partner data is
 already available in the context:
 
 ```python
-customer_id = context.partner_value(context.frompartner, "attr2", "")
+customer_id = context.partner_value("from", "attr2", "")
+```
+
+The shortcut aliases currently supported are:
+
+- `"from"` or `"frompartner"` for `context.frompartner`
+- `"to"` or `"topartner"` for `context.topartner`
+
+If the partner field must exist, use `required_partner_value(...)`:
+
+```python
+customer_id = context.required_partner_value("from", "customer_id")
+erp_code = context.required_partner_value("to", "erp_code", allow_blank=False)
 ```
 
 If you are using `BaseMapping`, prefer `self.partner_value(...)` when you want
@@ -141,7 +180,7 @@ service lookup fallback:
 ```python
 customer_id = self.partner_value(
     context,
-    context.frompartner,
+    "from",
     "attr2",
     default="",
 )
@@ -156,6 +195,29 @@ That lets you support both:
 
 - fully explicit Airflow-supplied partner data
 - runtime service lookups for shared partner metadata
+
+## Required-value helpers
+
+`TranslationContext` now includes two fail-fast helpers for mapping code:
+
+- `required_value(key, allow_blank=True)`
+- `required_partner_value(partner_id, field, allow_blank=True)`
+
+They are useful when a missing value should be treated as a mapping error instead
+of silently becoming a blank output field.
+
+Example:
+
+```python
+customer_id = context.required_value("customer_id")
+ship_to_code = context.required_partner_value("to", "dc_code")
+```
+
+Set `allow_blank=False` if whitespace-only strings should also fail:
+
+```python
+sender_name = context.required_value("sender_name", allow_blank=False)
+```
 
 ## Recommended fallback pattern
 

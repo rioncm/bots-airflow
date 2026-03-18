@@ -20,10 +20,51 @@ class TranslationContext:
     def value(self, key: str, default: Any = None) -> Any:
         return self.values.get(key, default)
 
+    def required_value(self, key: str, *, allow_blank: bool = True) -> Any:
+        value = self.value(key, None)
+        if value is None:
+            raise ValueError(f"Required context.values[{key!r}] was not provided.")
+        if not allow_blank and isinstance(value, str) and value.strip() == '':
+            raise ValueError(f"Required context.values[{key!r}] was blank.")
+        return value
+
+    def _resolve_partner_id(self, partner_id: str) -> str:
+        if partner_id in ('from', 'frompartner'):
+            return self.frompartner
+        if partner_id in ('to', 'topartner'):
+            return self.topartner
+        return partner_id
+
     def partner_value(self, partner_id: str, field: str, default: Any = '') -> Any:
-        if not partner_id:
+        resolved_partner_id = self._resolve_partner_id(partner_id)
+        if not resolved_partner_id:
             return default
-        return self.partners.get(partner_id, {}).get(field, default)
+        return self.partners.get(resolved_partner_id, {}).get(field, default)
+
+    def required_partner_value(
+        self,
+        partner_id: str,
+        field: str,
+        *,
+        allow_blank: bool = True,
+    ) -> Any:
+        resolved_partner_id = self._resolve_partner_id(partner_id)
+        if not resolved_partner_id:
+            raise ValueError(
+                f"Required partner reference {partner_id!r} did not resolve to a partner id."
+            )
+
+        value = self.partner_value(partner_id, field, None)
+        if value is None:
+            raise ValueError(
+                f"Required partner field {field!r} was not provided for partner "
+                f"{resolved_partner_id!r}."
+            )
+        if not allow_blank and isinstance(value, str) and value.strip() == '':
+            raise ValueError(
+                f"Required partner field {field!r} for partner {resolved_partner_id!r} was blank."
+            )
+        return value
 
 
 def coerce_translation_context(

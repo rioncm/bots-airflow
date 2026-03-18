@@ -106,6 +106,51 @@ WEB-1001,SKU-001,2
 That is the core Airflow overlap: Airflow decides the prefix, the mapping places
 it into the translated output.
 
+## Example: fail fast on required Airflow inputs
+
+If a DAG run must supply a value, use the required helpers instead of allowing a
+blank output to be generated.
+
+Airflow:
+
+```python
+context = TranslationContext(
+    values={
+        "customer_id": "900001",
+        "order_prefix": "WEB-",
+    },
+    partners={
+        "WEBSTORE": {
+            "warehouse_code": "0645",
+        },
+    },
+    frompartner="WEBSTORE",
+)
+```
+
+Mapping:
+
+```python
+class OrdersToCsv(BaseMapping):
+    def translate(self, inn, out, *, context: TranslationContext, **kwargs):
+        customer_id = context.required_value("customer_id")
+        order_prefix = context.required_value("order_prefix", allow_blank=False)
+        warehouse_code = context.required_partner_value("from", "warehouse_code")
+
+        for item in inn.getloop({"BOTSID": "root"}):
+            out.putloop(
+                {
+                    "BOTSID": "root",
+                    "customer_id": customer_id,
+                    "warehouse_code": warehouse_code,
+                    "order_id": f"{order_prefix}{item.record.get('order_id', '')}",
+                }
+            )
+```
+
+If Airflow forgets to provide one of those inputs, the mapping raises a clear
+`ValueError` immediately instead of writing a partial or ambiguous output.
+
 ## Example: multiple context values shaping X12 output
 
 The same pattern works for outbound EDI segments.
@@ -178,8 +223,8 @@ context = TranslationContext(
 Mapping:
 
 ```python
-customer_id = context.partner_value(context.frompartner, "customer_id", "")
-dc_code = context.partner_value(context.frompartner, "dc_code", "")
+customer_id = context.partner_value("from", "customer_id", "")
+dc_code = context.partner_value("from", "dc_code", "")
 ```
 
 Those values can then be written into outbound CSV columns, JSON fields, or EDI
